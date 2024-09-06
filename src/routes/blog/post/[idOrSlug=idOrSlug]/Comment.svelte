@@ -1,19 +1,7 @@
 <script lang="ts">
-	import { rewireRepliesCount } from '$lib';
+	import type { CommentData } from '$lib';
 
-	type Comment = {
-		id: number;
-		text: string;
-		createdAt: Date;
-		post: { id: number };
-		author: {
-			id: number;
-			name: string;
-		};
-		repliesCount: number;
-	};
-
-	export let data: Comment;
+	export let data: CommentData;
 
 	enum RepliesLoadStateTag {
 		NoReplies,
@@ -32,31 +20,31 @@
 		  }
 		| {
 				tag: RepliesLoadStateTag.LoadedVisible | RepliesLoadStateTag.LoadedHidden;
-				data: Comment[];
+				data: CommentData[];
 		  };
 
 	let repliesLoadState: RepliesLoadState;
 	$: repliesLoadState = {
 		tag: data.repliesCount === 0 ? RepliesLoadStateTag.NoReplies : RepliesLoadStateTag.NotLoaded,
 	};
-	console.log(data);
 
 	async function loadReplies() {
 		repliesLoadState.tag = RepliesLoadStateTag.Loading;
 		const response = await fetch(`/api/comments/${data.id}/replies`);
-		const replyData: any[] = await response.json();
+		const replyData: CommentData[] = await response.json().then((data) => {
+			for (let i = 0; i < data.length; i++) {
+				data[i].createdAt = new Date(data[i].createdAt);
+			}
+			return data;
+		});
 		repliesLoadState = {
 			tag: RepliesLoadStateTag.LoadedVisible,
-			data: replyData.map((data) => {
-				const rewired = rewireRepliesCount(data);
-				rewired.createdAt = new Date(rewired.createdAt);
-				return rewired;
-			}) as Comment[],
+			data: replyData as CommentData[],
 		};
 	}
 </script>
 
-<div class="flex flex-col">
+<div class="flex flex-col w-1/2">
 	<div class="chat chat-start">
 		<div class="chat-header">
 			{data.author.name}
@@ -85,7 +73,7 @@
 				</button>
 
 				<div class="ml-5">
-					{#each repliesLoadState.data as reply}
+					{#each repliesLoadState.data as reply (reply.id)}
 						<svelte:self data={reply} />
 					{/each}
 				</div>

@@ -12,6 +12,7 @@ const POSTS_PER_PAGE = 5;
 const getPosts = async (page: number = 0) =>
 	await prisma.post.findMany({
 		select: {
+			id: true,
 			slug: true,
 			title: true,
 			createdAt: true,

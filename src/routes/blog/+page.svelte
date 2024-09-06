@@ -6,7 +6,7 @@
 
 <a href="blog/new">Create post</a>
 
-{#each data.posts as post}
+{#each data.posts as post (post.id)}
 	<a class="card shadow-xl" href={`/blog/post/${post.slug}`}>
 		<div class="card-body">
 			<h2 class="card-title">{post.title}</h2>

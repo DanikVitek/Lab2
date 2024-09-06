@@ -1,6 +1,8 @@
 import { error, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { prisma } from '$lib/server';
+import { createComment, prisma } from '$lib/server';
+import { rewireRepliesCount } from '$lib/server';
+import type { CommentData } from '$lib';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const maybeId = Number.parseInt(params.idOrSlug);
@@ -28,8 +30,8 @@ const getPost = async (idOrSlug: number | string) =>
 		where: postWhereIdOrSlug(idOrSlug),
 	});
 
-const getCommentsForPost = async (idOrSlug: number | string) =>
-	await prisma.comment.findMany({
+async function getCommentsForPost(idOrSlug: number | string) {
+	const comments = await prisma.comment.findMany({
 		select: {
 			id: true,
 			createdAt: true,
@@ -51,6 +53,8 @@ const getCommentsForPost = async (idOrSlug: number | string) =>
 		},
 		orderBy: { createdAt: 'asc' },
 	});
+	return comments.map(rewireRepliesCount) as CommentData[];
+}
 
 const postWhereIdOrSlug = (idOrSlug: number | string) => ({
 	id: typeof idOrSlug === 'number' ? idOrSlug : undefined,
@@ -98,20 +102,3 @@ export const actions = {
 		await createComment(postId, text, name, parentId);
 	},
 } satisfies Actions;
-
-async function createComment(postId: number, text: string, name: string, parentId: number | null) {
-	await prisma.comment.create({
-		data: {
-			text,
-			post: { connect: { id: postId } },
-			author: {
-				connectOrCreate: {
-					where: { name },
-					create: { name },
-				},
-			},
-			parent: parentId ? { connect: { id: parentId } } : undefined,
-		},
-		select: { id: true },
-	});
-}

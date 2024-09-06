@@ -1,9 +1,42 @@
 <script lang="ts">
-	import { rewireRepliesCount } from '$lib';
+	import type { CommentData } from '$lib';
 	import type { PageData } from './$types';
 	import Comment from './Comment.svelte';
 
 	export let data: PageData;
+
+	let comments: CommentData[];
+	$: comments = [];
+
+	const commentsLoadPromise = data.comments.then((c) => {
+		comments = c;
+	});
+
+	async function onCommentSubmit(
+		e: SubmitEvent & { currentTarget: EventTarget & HTMLFormElement },
+	) {
+		e.preventDefault();
+		const form = e.currentTarget;
+		const formData = new FormData(form);
+		const response = await fetch(`/api/blog/post/${data.post.id}/comments`, {
+			method: form.method,
+			body: formData,
+		});
+		if (response.ok) {
+			form.reset();
+			await commentsLoadPromise;
+			const body = await response.json();
+			comments.push({
+				id: Number.parseInt(response.headers.get('Location')!),
+				author: body.author,
+				post: { id: data.post.id },
+				text: formData.get('text')! as string,
+				createdAt: new Date(body.createdAt),
+				repliesCount: 0,
+			});
+			comments = comments; // force reactivity
+		}
+	}
 </script>
 
 <div class="flex flex-row justify-between">
@@ -21,17 +54,22 @@
 
 Comments:
 
-<form class="flex flex-col" action={`/blog/${data.post.id}?/comment`} method="post">
+<form
+	class="flex flex-col w-1/2"
+	action="/blog/{data.post.id}?/comment"
+	method="post"
+	on:submit={onCommentSubmit}
+>
 	<textarea name="text" placeholder="Comment" required></textarea>
 	<button class="btn btn-xs" type="submit">Comment</button>
 </form>
 
 <div id="post-comments">
-	{#await data.comments}
+	{#await commentsLoadPromise}
 		<span class="loading loading-dots loading-sm"></span>
-	{:then comments}
-		{#each comments as comment}
-			<Comment data={rewireRepliesCount(comment)} />
+	{:then}
+		{#each comments as comment (comment.id)}
+			<Comment data={comment} />
 		{/each}
 	{/await}
 </div>
