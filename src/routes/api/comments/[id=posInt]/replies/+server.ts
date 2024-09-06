@@ -21,6 +21,7 @@ const getRepliesForComment = async (commentId: number) =>
 			id: true,
 			createdAt: true,
 			text: true,
+			post: { select: { id: true } },
 			author: {
 				select: {
 					id: true,

@@ -1,7 +1,6 @@
 import { error, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { prisma } from '$lib/server';
-import type { connect } from 'http2';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const maybeId = Number.parseInt(params.idOrSlug);
@@ -35,6 +34,7 @@ const getCommentsForPost = async (idOrSlug: number | string) =>
 			id: true,
 			createdAt: true,
 			text: true,
+			post: { select: { id: true } },
 			author: {
 				select: {
 					id: true,
@@ -68,10 +68,34 @@ export const actions = {
 			error(400, 'Text must be a string');
 		}
 
-		const maybePostId = Number.parseInt(params.slug!);
+		const maybePostId = Number.parseInt(params.idOrSlug!);
 		const postId = !Number.isNaN(maybePostId) ? maybePostId : error(400, 'Invalid post ID');
 
 		await createComment(postId, text, name, null);
+	},
+	reply: async ({ request, cookies, params }) => {
+		const name = cookies.get('name') ?? error(403, 'You must be logged in to comment');
+
+		const data = await request.formData();
+
+		const text = data.get('text') ?? error(400, 'Text is required');
+		if (typeof text !== 'string') {
+			error(400, 'Text must be a string');
+		}
+
+		const parentIdStr = data.get('id') ?? error(400, 'Parent ID is required');
+		if (typeof parentIdStr !== 'string') {
+			error(400, 'Parent ID must be a number string');
+		}
+		const parentId = Number.parseInt(parentIdStr);
+		if (Number.isNaN(parentId)) {
+			error(400, 'Parent ID must be a number string');
+		}
+
+		const maybePostId = Number.parseInt(params.idOrSlug!);
+		const postId = !Number.isNaN(maybePostId) ? maybePostId : error(400, 'Invalid post ID');
+
+		await createComment(postId, text, name, parentId);
 	},
 } satisfies Actions;
 

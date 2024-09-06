@@ -1,3 +1,7 @@
+<script>
+    import "../app.css";
+</script>
+
 <nav>
     <a href="/blog">Blog</a>
 </nav>

@@ -1,14 +1,7 @@
-<form method="post">
-	<input type="text" name="name" placeholder="Name" required />
-	<button type="submit">Login</button>
+<form class="flex flex-col justify-center h-screen items-center" method="post">
+	<label class="input input-bordered flex items-center gap-2">
+		Name:
+		<input class="grow" type="text" name="name" required />
+	</label>
+	<button class="btn" type="submit">Login</button>
 </form>
-
-<style>
-    form {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-    }
-</style>
