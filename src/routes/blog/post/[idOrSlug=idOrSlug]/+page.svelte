@@ -3,6 +3,8 @@
     import { route } from '$lib/ROUTES';
     import type { PageData } from './$types';
     import Comment from './Comment.svelte';
+    import { applyAction, deserialize } from '$app/forms';
+    import type { ActionsReturns } from './+page.server';
 
     export let data: PageData;
 
@@ -16,30 +18,33 @@
     async function onCommentSubmit(
         e: SubmitEvent & { currentTarget: EventTarget & HTMLFormElement },
     ) {
-        e.preventDefault();
         const form = e.currentTarget;
         const formData = new FormData(form);
-        const response = await fetch(
-            route('POST /api/blog/post/[id=posInt]/comments', { id: data.post.id }),
-            {
-                method: form.method,
-                body: formData,
-            },
+
+        const response = await fetch(form.action, {
+            method: form.method,
+            body: formData,
+        });
+
+        const result = deserialize<ActionsReturns['comment'], Record<string, unknown>>(
+            await response.text(),
         );
-        if (response.ok) {
+
+        if (result.type === 'success') {
             form.reset();
             await commentsLoadPromise;
-            const body = await response.json();
             comments.push({
-                id: Number.parseInt(response.headers.get('Location')!),
-                author: body.author,
+                id: result.data!.id,
+                author: result.data!.author,
                 post: { id: data.post.id },
                 text: formData.get('text')! as string,
-                createdAt: new Date(body.createdAt),
+                createdAt: result.data!.createdAt,
                 repliesCount: 0,
             });
             comments = comments; // force reactivity
         }
+
+        applyAction(result);
     }
 </script>
 
@@ -47,7 +52,8 @@
     <span>By {data.post.author.name}</span>
     <span>Published at <time>{data.post.createdAt.toLocaleString()}</time></span>
 </div>
-<article id="post-content" class="prose lg:prose-xl">
+
+<article id="post-content" class="prose lg:prose-xl text-justify">
     <h1>{data.post.title}</h1>
     {#each data.post.content.split(/(\\r\\n)|\\r|\\n/) as paragraph}
         <p>{paragraph}</p>
@@ -62,7 +68,7 @@ Comments:
     class="flex flex-col w-1/2"
     action={route('comment /blog/post/[idOrSlug=idOrSlug]', { idOrSlug: data.post.id })}
     method="post"
-    on:submit={onCommentSubmit}
+    on:submit|preventDefault={onCommentSubmit}
 >
     <textarea name="text" placeholder="Comment" required></textarea>
     <button class="btn btn-xs" type="submit">Comment</button>

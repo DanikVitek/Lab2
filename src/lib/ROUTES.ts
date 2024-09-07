@@ -9,176 +9,144 @@
  * PAGES
  */
 const PAGES = {
-    '/blog': `/blog`,
-    '/blog/new': `/blog/new`,
-    '/blog/post/[idOrSlug=idOrSlug]': (params: {
-        idOrSlug: Parameters<typeof import('../params/idOrSlug.ts').match>[0];
-    }) => {
-        return `/blog/post/${params.idOrSlug}`;
-    },
-    '/login': `/login`,
-};
+  "/blog": `/blog`,
+  "/blog/new": `/blog/new`,
+  "/blog/post/[idOrSlug=idOrSlug]": (params: { idOrSlug: (Parameters<typeof import('../params/idOrSlug.ts').match>[0]) }) => {
+    return `/blog/post/${params.idOrSlug}`
+  },
+  "/login": `/login`
+}
 
 /**
  * SERVERS
  */
 const SERVERS = {
-    'POST /api/blog/post/[id=posInt]/comments': (params: {
-        id: Parameters<typeof import('../params/posInt.ts').match>[0];
-    }) => {
-        return `/api/blog/post/${params.id}/comments`;
-    },
-    'GET /api/comments/[id=posInt]/replies': (params: {
-        id: Parameters<typeof import('../params/posInt.ts').match>[0];
-    }) => {
-        return `/api/comments/${params.id}/replies`;
-    },
-};
+  "GET /api/comments/[id=posInt]/replies": (params: { id: (Parameters<typeof import('../params/posInt.ts').match>[0]) }) => {
+    return `/api/comments/${params.id}/replies`
+  }
+}
 
 /**
  * ACTIONS
  */
 const ACTIONS = {
-    'default /blog/new': `/blog/new`,
-    'comment /blog/post/[idOrSlug=idOrSlug]': (params: {
-        idOrSlug: Parameters<typeof import('../params/idOrSlug.ts').match>[0];
-    }) => {
-        return `/blog/post/${params.idOrSlug}?/comment`;
-    },
-    'reply /blog/post/[idOrSlug=idOrSlug]': (params: {
-        idOrSlug: Parameters<typeof import('../params/idOrSlug.ts').match>[0];
-    }) => {
-        return `/blog/post/${params.idOrSlug}?/reply`;
-    },
-    'default /login': `/login`,
-};
+  "default /blog/new": `/blog/new`,
+  "comment /blog/post/[idOrSlug=idOrSlug]": (params: { idOrSlug: (Parameters<typeof import('../params/idOrSlug.ts').match>[0]) }) => {
+    return `/blog/post/${params.idOrSlug}?/comment`
+  },
+  "reply /blog/post/[idOrSlug=idOrSlug]": (params: { idOrSlug: (Parameters<typeof import('../params/idOrSlug.ts').match>[0]) }) => {
+    return `/blog/post/${params.idOrSlug}?/reply`
+  },
+  "default /login": `/login`
+}
 
 /**
  * LINKS
  */
-const LINKS = {};
+const LINKS = {
+  
+}
 
-type ParamValue = string | number | undefined;
+type ParamValue = string | number | undefined
 
 /**
  * Append search params to a string
  */
-export const appendSp = (
-    sp?: Record<string, ParamValue | ParamValue[]>,
-    prefix: '?' | '&' = '?',
-) => {
-    if (sp === undefined) return '';
+export const appendSp = (sp?: Record<string, ParamValue | ParamValue[]>, prefix: '?' | '&' = '?') => {
+  if (sp === undefined) return ''
 
-    const params = new URLSearchParams();
-    const append = (n: string, v: ParamValue) => {
-        if (v !== undefined) {
-            params.append(n, String(v));
-        }
-    };
-
-    for (const [name, val] of Object.entries(sp)) {
-        if (Array.isArray(val)) {
-            for (const v of val) {
-                append(name, v);
-            }
-        } else {
-            append(name, val);
-        }
+  const params = new URLSearchParams()
+  const append = (n: string, v: ParamValue) => {
+    if (v !== undefined) {
+      params.append(n, String(v))
     }
+  }
 
-    const formatted = params.toString();
-    if (formatted) {
-        return `${prefix}${formatted}`;
+  for (const [name, val] of Object.entries(sp)) {
+    if (Array.isArray(val)) {
+      for (const v of val) {
+        append(name, v)
+      }
+    } else {
+      append(name, val)
     }
-    return '';
-};
+  }
+
+  const formatted = params.toString()
+  if (formatted) {
+    return `${prefix}${formatted}`
+  }
+  return ''
+}
 
 /**
  * get the current search params
- *
+ * 
  * Could be use like this:
  * ```
  * route("/cities", { page: 2 }, { ...currentSP() })
  * ```
- */
+ */ 
 export const currentSp = () => {
-    const params = new URLSearchParams(window.location.search);
-    const record: Record<string, string> = {};
-    for (const [key, value] of params.entries()) {
-        record[key] = value;
-    }
-    return record;
-};
+  const params = new URLSearchParams(window.location.search)
+  const record: Record<string, string> = {}
+  for (const [key, value] of params.entries()) {
+    record[key] = value
+  }
+  return record
+}
 
 // route function helpers
-type NonFunctionKeys<T> = { [K in keyof T]: T[K] extends Function ? never : K }[keyof T];
-type FunctionKeys<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T];
-type FunctionParams<T> = T extends (...args: infer P) => any ? P : never;
+type NonFunctionKeys<T> = { [K in keyof T]: T[K] extends Function ? never : K }[keyof T]
+type FunctionKeys<T> = { [K in keyof T]: T[K] extends Function ? K : never }[keyof T]
+type FunctionParams<T> = T extends (...args: infer P) => any ? P : never
 
-const AllObjs = { ...PAGES, ...ACTIONS, ...SERVERS, ...LINKS };
-type AllTypes = typeof AllObjs;
+const AllObjs = { ...PAGES, ...ACTIONS, ...SERVERS, ...LINKS }
+type AllTypes = typeof AllObjs
 
-export type Routes = keyof AllTypes extends `${string}/${infer Route}`
-    ? `/${Route}`
-    : keyof AllTypes;
+export type Routes = keyof AllTypes extends `${string}/${infer Route}` ? `/${Route}` : keyof AllTypes
 export const routes = [
-    ...new Set(Object.keys(AllObjs).map((route) => /^\/.*|[^ ]?\/.*$/.exec(route)?.[0] ?? route)),
-] as Routes[];
+	...new Set(Object.keys(AllObjs).map((route) => /^\/.*|[^ ]?\/.*$/.exec(route)?.[0] ?? route)),
+] as Routes[]
 
 /**
- * To be used like this:
+ * To be used like this: 
  * ```ts
  * import { route } from './ROUTES'
- *
+ * 
  * route('site_id', { id: 1 })
  * ```
  */
-export function route<T extends FunctionKeys<AllTypes>>(
-    key: T,
-    ...params: FunctionParams<AllTypes[T]>
-): string;
-export function route<T extends NonFunctionKeys<AllTypes>>(key: T): string;
+export function route<T extends FunctionKeys<AllTypes>>(key: T, ...params: FunctionParams<AllTypes[T]>): string
+export function route<T extends NonFunctionKeys<AllTypes>>(key: T): string
 export function route<T extends keyof AllTypes>(key: T, ...params: any[]): string {
-    if ((AllObjs[key] as any) instanceof Function) {
-        const element = (AllObjs as any)[key] as (...args: any[]) => string;
-        return element(...params);
-    } else {
-        return AllObjs[key] as string;
-    }
+  if (AllObjs[key] as any instanceof Function) {
+    const element = (AllObjs as any)[key] as (...args: any[]) => string
+    return element(...params)
+  } else {
+    return AllObjs[key] as string
+  }
 }
 
 /**
- * Add this type as a generic of the vite plugin `kitRoutes<KIT_ROUTES>`.
- *
- * Full example:
- * ```ts
- * import type { KIT_ROUTES } from './ROUTES'
- * import { kitRoutes } from 'vite-plugin-kit-routes'
- *
- * kitRoutes<KIT_ROUTES>({
- *  PAGES: {
- *    // here, key of object will be typed!
- *  }
- * })
- * ```
- */
+* Add this type as a generic of the vite plugin `kitRoutes<KIT_ROUTES>`.
+*
+* Full example:
+* ```ts
+* import type { KIT_ROUTES } from './ROUTES'
+* import { kitRoutes } from 'vite-plugin-kit-routes'
+*
+* kitRoutes<KIT_ROUTES>({
+*  PAGES: {
+*    // here, key of object will be typed!
+*  }
+* })
+* ```
+*/
 export type KIT_ROUTES = {
-    PAGES: {
-        '/blog': never;
-        '/blog/new': never;
-        '/blog/post/[idOrSlug=idOrSlug]': 'idOrSlug';
-        '/login': never;
-    };
-    SERVERS: {
-        'POST /api/blog/post/[id=posInt]/comments': 'id';
-        'GET /api/comments/[id=posInt]/replies': 'id';
-    };
-    ACTIONS: {
-        'default /blog/new': never;
-        'comment /blog/post/[idOrSlug=idOrSlug]': 'idOrSlug';
-        'reply /blog/post/[idOrSlug=idOrSlug]': 'idOrSlug';
-        'default /login': never;
-    };
-    LINKS: Record<string, never>;
-    Params: { idOrSlug: never; id: never };
-};
+  PAGES: { '/blog': never, '/blog/new': never, '/blog/post/[idOrSlug=idOrSlug]': 'idOrSlug', '/login': never }
+  SERVERS: { 'GET /api/comments/[id=posInt]/replies': 'id' }
+  ACTIONS: { 'default /blog/new': never, 'comment /blog/post/[idOrSlug=idOrSlug]': 'idOrSlug', 'reply /blog/post/[idOrSlug=idOrSlug]': 'idOrSlug', 'default /login': never }
+  LINKS: Record<string, never>
+  Params: { idOrSlug: never, id: never }
+}

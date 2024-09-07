@@ -1,6 +1,6 @@
 import { error, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { createComment, prisma } from '$lib/server';
+import { createComment, getUserName, prisma } from '$lib/server';
 import { rewireRepliesCount } from '$lib/server';
 import type { CommentData } from '$lib';
 
@@ -61,9 +61,13 @@ const postWhereIdOrSlug = (idOrSlug: number | string) => ({
     slug: typeof idOrSlug === 'string' ? idOrSlug : undefined,
 });
 
+export type ActionsReturns = {
+    [K in keyof typeof actions]: Awaited<ReturnType<(typeof actions)[K]>>;
+};
+
 export const actions = {
     comment: async ({ request, cookies, params }) => {
-        const name = cookies.get('name') ?? error(403, 'You must be logged in to comment');
+        const name = getUserName(cookies);
 
         const data = await request.formData();
 
@@ -75,10 +79,20 @@ export const actions = {
         const maybePostId = Number.parseInt(params.idOrSlug!);
         const postId = !Number.isNaN(maybePostId) ? maybePostId : error(400, 'Invalid post ID');
 
-        await createComment(postId, text, name, null);
+        const {
+            id,
+            author: { id: authorId },
+            createdAt,
+        } = await createComment(postId, text, name, null);
+
+        return {
+            id,
+            createdAt,
+            author: { id: authorId, name },
+        };
     },
     reply: async ({ request, cookies, params }) => {
-        const name = cookies.get('name') ?? error(403, 'You must be logged in to comment');
+        const name = getUserName(cookies);
 
         const data = await request.formData();
 
