@@ -18,7 +18,7 @@ export const actions = {
 		}
 
 		const slug = await createPost(title, content, name);
-		redirect(302, `/blog/${slug}`);
+		redirect(302, `/blog/post/${slug}`);
 	},
 } satisfies Actions;
 
