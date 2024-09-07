@@ -17,7 +17,7 @@ export const POST: RequestHandler = async ({ request, cookies, params }) => {
 	const {
 		id,
 		author: { id: authorId },
-        createdAt,
+		createdAt,
 	} = await createComment(postId, text, name, null);
 
 	return json(

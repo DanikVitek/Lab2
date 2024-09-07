@@ -1,9 +1,10 @@
+import { route } from '$lib/ROUTES';
 import { prisma } from '$lib/server';
 import { error, redirect, type Actions } from '@sveltejs/kit';
 
 export const actions = {
 	default: async ({ request, cookies }) => {
-		const name = cookies.get('name') ?? redirect(302, '/login');
+		const name = cookies.get('name') ?? redirect(302, route('/login'));
 
 		const data = await request.formData();
 
@@ -18,7 +19,7 @@ export const actions = {
 		}
 
 		const slug = await createPost(title, content, name);
-		redirect(302, `/blog/post/${slug}`);
+		redirect(302, route('/blog/post/[idOrSlug=idOrSlug]', { idOrSlug: slug }));
 	},
 } satisfies Actions;
 

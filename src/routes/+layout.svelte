@@ -1,24 +1,12 @@
 <script>
-    import "../app.css";
+	import { route } from '$lib/ROUTES';
+	import '../app.css';
 </script>
 
-<nav>
-    <a href="/blog">Blog</a>
+<nav class="navbar">
+	<a class="link" href={route('/blog')}>Blog</a>
 </nav>
 
-<main>
-    <slot />
+<main class="mt-4 px-[10vw]">
+	<slot />
 </main>
-
-<style>
-    nav {
-        display: flex;
-        flex-direction: row;
-        gap: 1rem;
-    }
-    main {
-        margin-top: 1rem;
-        padding-left: 10vw;
-        padding-right: 10vw;
-    }
-</style>

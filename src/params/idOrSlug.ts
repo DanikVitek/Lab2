@@ -1,1 +1,4 @@
-export const match = (s: string): boolean => /^(([1-9][0-9]+)|([0-9a-z\-]+))$/.test(s);
+export const match = (s: number | string): boolean => {
+	const n = Number.parseInt(s as unknown as string);
+	return (!Number.isNaN(n) && n > 0) || /^[0-9a-z\-]+$/.test(s as string);
+};

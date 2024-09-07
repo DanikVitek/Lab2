@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { CommentData } from '$lib';
+	import { route } from '$lib/ROUTES';
 	import type { PageData } from './$types';
 	import Comment from './Comment.svelte';
 
@@ -18,10 +19,13 @@
 		e.preventDefault();
 		const form = e.currentTarget;
 		const formData = new FormData(form);
-		const response = await fetch(`/api/blog/post/${data.post.id}/comments`, {
-			method: form.method,
-			body: formData,
-		});
+		const response = await fetch(
+			route('POST /api/blog/post/[id=posInt]/comments', { id: data.post.id }),
+			{
+				method: form.method,
+				body: formData,
+			},
+		);
 		if (response.ok) {
 			form.reset();
 			await commentsLoadPromise;
@@ -56,7 +60,7 @@ Comments:
 
 <form
 	class="flex flex-col w-1/2"
-	action="/blog/{data.post.id}?/comment"
+	action={route('comment /blog/post/[idOrSlug=idOrSlug]', { idOrSlug: data.post.id })}
 	method="post"
 	on:submit={onCommentSubmit}
 >

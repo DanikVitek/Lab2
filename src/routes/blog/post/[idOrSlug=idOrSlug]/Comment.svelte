@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { CommentData } from '$lib';
+	import { route } from '$lib/ROUTES';
 
 	export let data: CommentData;
 
@@ -30,7 +31,7 @@
 
 	async function loadReplies() {
 		repliesLoadState.tag = RepliesLoadStateTag.Loading;
-		const response = await fetch(`/api/comments/${data.id}/replies`);
+		const response = await fetch(route('GET /api/comments/[id=posInt]/replies', { id: data.id }));
 		const replyData: CommentData[] = await response.json().then((data) => {
 			for (let i = 0; i < data.length; i++) {
 				data[i].createdAt = new Date(data[i].createdAt);
@@ -53,7 +54,11 @@
 		<div class="chat-bubble">{data.text}</div>
 	</div>
 
-	<form class="flex flex-col" method="post" action="/blog/post/{data.post.id}?/reply">
+	<form
+		class="flex flex-col"
+		method="post"
+		action={route('reply /blog/post/[idOrSlug=idOrSlug]', { idOrSlug: data.post.id })}
+	>
 		<input name="id" type="hidden" value={data.id} />
 		<textarea name="text" placeholder="Reply"></textarea>
 		<button class="btn btn-xs">Reply</button>

@@ -1,11 +1,15 @@
-<form method="post">
+<script>
+	import { route } from '$lib/ROUTES';
+</script>
+
+<form method="post" action={route('default /blog/new')}>
 	<label>
 		Title
 		<input name="title" type="text" />
 	</label>
 	<label>
 		Content
-		<textarea name="content" ></textarea>
+		<textarea name="content"></textarea>
 	</label>
 	<button type="submit">Create post</button>
 </form>
@@ -25,9 +29,9 @@
 	textarea {
 		padding: 0.5rem;
 	}
-    textarea{
-        resize: vertical;
-    }
+	textarea {
+		resize: vertical;
+	}
 	button {
 		padding: 0.5rem;
 	}
