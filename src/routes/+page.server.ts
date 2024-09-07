@@ -3,5 +3,5 @@ import type { PageServerLoad } from './$types';
 import { route } from '$lib/ROUTES';
 
 export const load: PageServerLoad = async ({}) => {
-	redirect(302, route('/blog'));
+    redirect(302, route('/blog'));
 };

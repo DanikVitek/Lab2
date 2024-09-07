@@ -3,5 +3,5 @@ import { defineConfig } from 'vite';
 import { kitRoutes } from 'vite-plugin-kit-routes';
 
 export default defineConfig({
-	plugins: [sveltekit(), kitRoutes()],
+    plugins: [sveltekit(), kitRoutes()],
 });
