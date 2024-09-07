@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -22,7 +22,7 @@ model Post {
   title     String
   slug      String    @unique
   createdAt DateTime  @default(now())
-  content   String
+  content   String    @db.Text
   author    User      @relation(fields: [authorId], references: [id])
   authorId  Int
   comments  Comment[]
@@ -31,7 +31,7 @@ model Post {
 model Comment {
   id        Int       @id @default(autoincrement())
   createdAt DateTime  @default(now())
-  text      String
+  text      String    @db.VarChar(1023)
   post      Post      @relation(fields: [postId], references: [id])
   postId    Int
   parent    Comment?  @relation("CommentToComment", fields: [parentId], references: [id])
